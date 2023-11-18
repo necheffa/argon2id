@@ -49,5 +49,13 @@ var _ = Describe("Argon2id", func() {
 				Expect(errors.Is(err, argon2id.ErrMismatchedHashAndPassword)).To(BeTrue())
 			})
 		})
+
+		Context("with an invalid hash sigil", func() {
+			It("should return an ErrInvalidHashSigil error", func() {
+				hash := []byte("bad$hash$sigil")
+				err := argon2id.CompareHashAndPassword(hash, []byte("notpassword"))
+				Expect(errors.Is(err, argon2id.ErrInvalidHashSigil)).To(BeTrue())
+			})
+		})
 	})
 })

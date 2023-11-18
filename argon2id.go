@@ -35,7 +35,7 @@ const (
 	DefaultThreads uint8  = 4
 	DefaultKeyLen  uint32 = 32
 
-	Prefix string = "99"
+	Prefix string = "an99"
 
 	seporator byte   = '$'
 	saltLen   int    = 16 // per RFC 9106 recommendations.
@@ -48,6 +48,7 @@ var (
 	ErrInvalidTimeParm           = errInvalidTimeParm()
 	ErrInvalidMemParm            = errInvalidMemParm()
 	ErrInvalidThreadParm         = errInvalidThreadParm()
+	ErrInvalidHashSigil          = errInvalidHashSigil()
 )
 
 func errMismatchedHashAndPassword() error {
@@ -68,6 +69,10 @@ func errInvalidMemParm() error {
 
 func errInvalidThreadParm() error {
 	return errors.New("necheff.net/argon2id: invalid threads paramater")
+}
+
+func errInvalidHashSigil() error {
+	return errors.New("necheff.net/argon2id: invalid hash sigil")
 }
 
 func GenerateFromPassword(password []byte, time, mem uint32, threads uint8) ([]byte, error) {
@@ -112,7 +117,9 @@ func GenerateFromPassword(password []byte, time, mem uint32, threads uint8) ([]b
 func CompareHashAndPassword(hashedPassword, password []byte) error {
 	parms := bytes.Split(hashedPassword, []byte{seporator})
 
-	// TODO: add check on parms[0] to make sure we have a valid sigil.
+	if !bytes.Equal(parms[0], []byte(Prefix)) {
+		return ErrInvalidHashSigil
+	}
 
 	timeStr := parms[1]
 	memStr := parms[2]
