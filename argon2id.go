@@ -89,12 +89,13 @@ func GenerateFromPassword(password []byte, time, mem uint32, threads uint8) ([]b
 	// should set a default and return a non-nil error along with a valid hash.
 	// this will allow less experianced users to set `0` for these values and get safe results.
 
-	// TODO: erase the `hash` and `salt` buffers after they are copied into `crypt`
 	hashBuf := argon2.IDKey(password, saltBuf, time, mem, threads, keyLen)
 	hash := make([]byte, base64.StdEncoding.EncodedLen(len(hashBuf)))
+	defer eraseBuf(hash)
 	base64.StdEncoding.Encode(hash, hashBuf)
 
 	salt := make([]byte, base64.StdEncoding.EncodedLen(len(saltBuf)))
+	defer eraseBuf(salt)
 	base64.StdEncoding.Encode(salt, saltBuf)
 
 	// TODO: preallocate this to avoid transparent reallocation leaving dereferenced fragments in memory.
@@ -143,14 +144,15 @@ func CompareHashAndPassword(hashedPassword, password []byte) error {
 		return ErrInvalidThreadParm
 	}
 
-	// TODO: overwrite `salt` and `hash` buffers when comparison is done.
 	salt := make([]byte, base64.StdEncoding.DecodedLen(len(saltEnc)))
+	defer eraseBuf(salt)
 	saltLen, err := base64.StdEncoding.Decode(salt, saltEnc)
 	if err != nil {
 		return err
 	}
 
 	hash := make([]byte, base64.StdEncoding.DecodedLen(len(hashEnc)))
+	defer eraseBuf(hash)
 	hashLen, err := base64.StdEncoding.Decode(hash, hashEnc)
 	if err != nil {
 		return err
@@ -163,4 +165,12 @@ func CompareHashAndPassword(hashedPassword, password []byte) error {
 	}
 
 	return ErrMismatchedHashAndPassword
+}
+
+// eraseBuf fills len(buf) with space characters.
+// if buf is nil or zero length, eraseBuf takes no action.
+func eraseBuf(buf []byte) {
+	for i := 0; i < len(buf); i++ {
+		buf[i] = ' '
+	}
 }
