@@ -98,9 +98,18 @@ func GenerateFromPassword(password []byte, time, mem uint32, threads uint8) ([]b
 	defer eraseBuf(salt)
 	base64.StdEncoding.Encode(salt, saltBuf)
 
-	// TODO: preallocate this to avoid transparent reallocation leaving dereferenced fragments in memory.
 	sep := []byte{seporator}
-	crypt := []byte(Prefix)
+	timeStr := fmt.Sprint(time)
+	memStr := fmt.Sprint(mem)
+	threadsStr := fmt.Sprint(threads)
+
+	// preallocate the crypt buffer to avoid transparent reallocation leaving dereferenced fragments in memory.
+	// this allows callers to securly wipe memory in multitenant environments.
+	size := len([]byte(Prefix)) + len(sep) + len(timeStr) + len(sep) + len(memStr) + len(sep) + len(threadsStr) + len(sep) +
+		len(salt) + len(sep) + len(hash)
+	crypt := make([]byte, 0, size)
+
+	crypt = append(crypt, []byte(Prefix)...)
 	crypt = append(crypt, sep...)
 	crypt = append(crypt, fmt.Sprint(time)...)
 	crypt = append(crypt, sep...)
