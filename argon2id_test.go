@@ -24,6 +24,7 @@ import (
 
 	"necheff.net/argon2id"
 
+	"bytes"
 	"errors"
 )
 
@@ -55,6 +56,25 @@ var _ = Describe("Argon2id", func() {
 				hash := []byte("bad$hash$sigil")
 				err := argon2id.CompareHashAndPassword(hash, []byte("notpassword"))
 				Expect(errors.Is(err, argon2id.ErrInvalidHashSigil)).To(BeTrue())
+			})
+		})
+	})
+
+	Describe("GenerateFromPassword", func() {
+		Context("with zero value parameters", func() {
+			It("should return a hash generated using default parameters", func() {
+				hashA, err := argon2id.GenerateFromPassword([]byte("password"), 0, 0, 0)
+				Expect(err).To(BeNil())
+
+				hashB, err := argon2id.GenerateFromPassword([]byte("password"), argon2id.DefaultTime,
+					argon2id.DefaultMem, argon2id.DefaultThreads)
+				Expect(err).To(BeNil())
+
+				parmsA := bytes.Split(hashA, []byte{'$'})
+				parmsB := bytes.Split(hashB, []byte{'$'})
+				for i := 0; i < 4; i++ {
+					Expect(bytes.Equal(parmsA[i], parmsB[i])).To(BeTrue())
+				}
 			})
 		})
 	})

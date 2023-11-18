@@ -30,6 +30,7 @@ import (
 )
 
 const (
+	// TODO: validate these are the recommended defaults
 	DefaultTime    uint32 = 8
 	DefaultMem     uint32 = 8
 	DefaultThreads uint8  = 4
@@ -85,9 +86,19 @@ func GenerateFromPassword(password []byte, time, mem uint32, threads uint8) ([]b
 		return nil, ErrUnexpectedSaltSize
 	}
 
-	// TODO: handle the senario where `time`, `mem`, or `threads` are out-of-bounds,
-	// should set a default and return a non-nil error along with a valid hash.
-	// this will allow less experianced users to set `0` for these values and get safe results.
+	// TODO: set maximum password check to avoid collisions based on key length.
+
+	if time == 0 {
+		time = DefaultTime
+	}
+
+	if mem == 0 {
+		mem = DefaultMem
+	}
+
+	if threads == 0 {
+		threads = DefaultThreads
+	}
 
 	hashBuf := argon2.IDKey(password, saltBuf, time, mem, threads, keyLen)
 	hash := make([]byte, base64.StdEncoding.EncodedLen(len(hashBuf)))
