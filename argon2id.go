@@ -30,10 +30,10 @@ import (
 )
 
 const (
-	// TODO: validate these are the recommended defaults
-	DefaultTime    uint32 = 8
-	DefaultMem     uint32 = 8
-	DefaultThreads uint8  = 4
+	// Based on recommendations by OWASP.
+	DefaultTime    uint32 = 4
+	DefaultMem     uint32 = 9 * 1024 // in kilobytes
+	DefaultThreads uint8  = 1
 	DefaultKeyLen  uint32 = 32
 
 	Prefix string = "an99"
