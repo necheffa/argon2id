@@ -167,18 +167,17 @@ func CompareHashAndPassword(hashedPassword, password []byte) error {
 
 	time, err := strconv.ParseUint(string(timeStr), 10, 32)
 	if err != nil {
-		// TODO: how to wrap `err` in this?
-		return ErrInvalidTimeParm
+		return errors.Join(ErrInvalidTimeParm, err)
 	}
 
 	mem, err := strconv.ParseUint(string(memStr), 10, 32)
 	if err != nil {
-		return ErrInvalidMemParm
+		return errors.Join(ErrInvalidMemParm, err)
 	}
 
 	threads, err := strconv.ParseUint(string(threadStr), 10, 8)
 	if err != nil {
-		return ErrInvalidThreadParm
+		return errors.Join(ErrInvalidThreadParm, err)
 	}
 
 	salt := make([]byte, base64.StdEncoding.DecodedLen(len(saltEnc)))
