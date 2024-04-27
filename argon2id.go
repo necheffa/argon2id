@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2023 Alexander Necheff
+   Copyright (C) 2023, 2024 Alexander Necheff
 
    This file is part of argon2id.
 
@@ -40,7 +40,7 @@ const (
 
 	seporator byte   = '$'
 	saltLen   int    = 16 // per RFC 9106 recommendations.
-	keyLen    uint32 = 32 // TODO: follow up on this, but this should be a 256 bit key (a.k.a. 32 bytes)
+	keyLen    uint32 = 32 // A 256 bit key (a.k.a. 32 bytes)
 )
 
 var (
@@ -86,7 +86,11 @@ func GenerateFromPassword(password []byte, time, mem uint32, threads uint8) ([]b
 		return nil, ErrUnexpectedSaltSize
 	}
 
-	// TODO: set maximum password check to avoid collisions based on key length.
+	// Per RFC 9106: The KDF security is determined by the key length and the size of the internal state of
+	// hash function H'. To distinguish the output of the keyed Argon2 from random, a minimum of
+	// (2^(128),2^length(K)) calls to BLAKE2b are needed.
+	//
+	// This means collisions are a function of key size, not password length, therefore no password length check is needed.
 
 	if time == 0 {
 		time = DefaultTime
