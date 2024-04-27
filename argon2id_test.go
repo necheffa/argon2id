@@ -35,17 +35,17 @@ var _ = Describe("Argon2id", func() {
 		Context("with a valid password", func() {
 			It("should not return an error", func() {
 				hash, err := argon2id.GenerateFromPassword([]byte("password"), 4, 12*1024, 6)
-				Expect(err).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
 
 				err = argon2id.CompareHashAndPassword(hash, []byte("password"))
-				Expect(err).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 
 		Context("with an invalid password", func() {
 			It("should return an ErrMismatchedHashAndPassword error", func() {
 				hash, err := argon2id.GenerateFromPassword([]byte("password"), 4, 12*1024, 6)
-				Expect(err).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
 
 				err = argon2id.CompareHashAndPassword(hash, []byte("notpassword"))
 				Expect(errors.Is(err, argon2id.ErrMismatchedHashAndPassword)).To(BeTrue())
@@ -65,11 +65,11 @@ var _ = Describe("Argon2id", func() {
 		Context("with zero value parameters", func() {
 			It("should return a hash generated using default parameters", func() {
 				hashA, err := argon2id.GenerateFromPassword([]byte("password"), 0, 0, 0)
-				Expect(err).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
 
 				hashB, err := argon2id.GenerateFromPassword([]byte("password"), argon2id.DefaultTime,
 					argon2id.DefaultMem, argon2id.DefaultThreads)
-				Expect(err).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
 
 				parmsA := bytes.Split(hashA, []byte{'$'})
 				parmsB := bytes.Split(hashB, []byte{'$'})
