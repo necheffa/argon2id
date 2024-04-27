@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2023 Alexander Necheff
+   Copyright (C) 2023, 2024 Alexander Necheff
 
    This file is part of argon2id.
 
@@ -26,6 +26,7 @@ import (
 
 	"bytes"
 	"errors"
+	"strings"
 )
 
 var _ = Describe("Argon2id", func() {
@@ -75,6 +76,15 @@ var _ = Describe("Argon2id", func() {
 				for i := 0; i < 4; i++ {
 					Expect(bytes.Equal(parmsA[i], parmsB[i])).To(BeTrue())
 				}
+			})
+		})
+
+		Context("with a password length that exceeds RFC 9106 limits", func() {
+			password := strings.Repeat("a", 2<<31)
+
+			It("should return an ErrPasswdTooLong error", func() {
+				_, err := argon2id.GenerateFromPassword([]byte(password), 0, 0, 0)
+				Expect(errors.Is(err, argon2id.ErrPasswdTooLong)).To(BeTrue())
 			})
 		})
 	})

@@ -36,6 +36,8 @@ const (
 	DefaultThreads uint8  = 1
 	DefaultKeyLen  uint32 = 32
 
+	MaxRFC9106PasswdLen int = (2 << 31) - 1
+
 	Prefix string = "an99"
 
 	seporator byte   = '$'
@@ -50,6 +52,7 @@ var (
 	ErrInvalidMemParm            = errInvalidMemParm()
 	ErrInvalidThreadParm         = errInvalidThreadParm()
 	ErrInvalidHashSigil          = errInvalidHashSigil()
+	ErrPasswdTooLong             = errPasswdTooLong()
 )
 
 func errMismatchedHashAndPassword() error {
@@ -76,6 +79,10 @@ func errInvalidHashSigil() error {
 	return errors.New("necheff.net/argon2id: invalid hash sigil")
 }
 
+func errPasswdTooLong() error {
+	return errors.New("necheff.net/argon2id: password length exceeds RFC 9106 limits.")
+}
+
 func GenerateFromPassword(password []byte, time, mem uint32, threads uint8) ([]byte, error) {
 	saltBuf := make([]byte, saltLen, saltLen)
 	n, err := rand.Read(saltBuf)
@@ -89,8 +96,14 @@ func GenerateFromPassword(password []byte, time, mem uint32, threads uint8) ([]b
 	// Per RFC 9106: The KDF security is determined by the key length and the size of the internal state of
 	// hash function H'. To distinguish the output of the keyed Argon2 from random, a minimum of
 	// (2^(128),2^length(K)) calls to BLAKE2b are needed.
+	// Implying security is a function of key length, not password length.
 	//
-	// This means collisions are a function of key size, not password length, therefore no password length check is needed.
+	// However, the RFC also states: Argon2 has the following input parameters...
+	// Message string P, which is a password for password hashing applications. It MUST have a length
+	// not greater than 2^(32)-1 bytes.
+	if len(password) >= MaxRFC9106PasswdLen {
+		return nil, ErrPasswdTooLong
+	}
 
 	if time == 0 {
 		time = DefaultTime
