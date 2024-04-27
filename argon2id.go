@@ -84,7 +84,7 @@ func errPasswdTooLong() error {
 }
 
 func GenerateFromPassword(password []byte, time, mem uint32, threads uint8) ([]byte, error) {
-	saltBuf := make([]byte, saltLen, saltLen)
+	saltBuf := make([]byte, saltLen)
 	n, err := rand.Read(saltBuf)
 	if err != nil {
 		return nil, err
